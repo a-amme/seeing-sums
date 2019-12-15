@@ -19,7 +19,6 @@ def seeTest(model, dataset, filename=None, images=1):
     figure, subfigures = plt.subplots(2)
     subfigures[0].imshow(inputs[0])
     subfigures[1].imshow(outputs[0])
-    plt.axes('off')
     plt.show()
     if filename:
         plt.savefig(filename)

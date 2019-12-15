@@ -6,15 +6,11 @@ from keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Reshape
 from keras.layers import UpSampling2D, BatchNormalization
 import pickle as pkl
 
-def makeAndTrainModel(training_epochs=1):
+def makeAndTrainModel(data, training_epochs):
 
     """
     The name says it all
     """
-
-    # Load data
-    with open('dataset.txt', 'rb') as file:
-        data = pkl.load(file, encoding='latin1')['x']
 
     # Parameters
     input_shape = data[0].shape
@@ -28,7 +24,15 @@ def makeAndTrainModel(training_epochs=1):
     x = MaxPooling2D((2, 2), padding='same')(x)
     x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
     x = MaxPooling2D((2, 2), padding='same')(x)
+    x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling2D((2, 2), padding='same')(x)
+    x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling2D((2, 2), padding='same')(x)
     # Decoder portion
+    x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
+    x = UpSampling2D((2, 2))(x)
+    x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
+    x = UpSampling2D((2, 2))(x)
     x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
     x = UpSampling2D((2, 2))(x)
     x = Conv2D(32, (3, 3), activation='relu', padding='same')(x)
