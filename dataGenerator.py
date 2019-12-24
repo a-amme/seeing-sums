@@ -72,7 +72,8 @@ def generateRectangles(numerosity, minSide, maxSide, padding, size):
             counter += 1
             shapeAttempt = np.random.uniform(minSide, maxSide)
             posBound = (size / 4) - (shapeAttempt + padding)
-            posAttempt = np.random.uniform(-posBound, posBound), np.random.uniform(-posBound, posBound)
+            posAttempt = np.random.uniform(-posBound, posBound), 
+                         np.random.uniform(-posBound, posBound)
             # Check whether this dot fits the others
             goodShape = False
             if len(shapes) == 0:
@@ -80,8 +81,8 @@ def generateRectangles(numerosity, minSide, maxSide, padding, size):
             else:
                 goodShape = True
                 for shape in shapes:
-                    centerDistanceY = max(shape[1][1], posAttempt[1]) -  min(shape[1][1], posAttempt[1])
-                    centerDistanceX = max(shape[1][0], posAttempt[0]) -  min(shape[1][0], posAttempt[0])
+                    centerDistanceY = max(shape[1][1], posAttempt[1]) - min(shape[1][1], posAttempt[1])
+                    centerDistanceX = max(shape[1][0], posAttempt[0]) - min(shape[1][0], posAttempt[0])
                     minimumDistanceX = shape[0] / 2 + shapeAttempt / 2 + padding
                     minimumDistanceY = shape[0] / 2 + shapeAttempt / 2 + padding
                     if centerDistanceX < minimumDistanceX and centerDistanceY < minimumDistanceY:
@@ -94,15 +95,15 @@ def generateRectangles(numerosity, minSide, maxSide, padding, size):
     return shapes
 
 
-num = 2500 # this is an upper bound
+num = 1 # this is an upper bound
 low = 1
 high = 13
 imagesPerNumerosity = num / (high - low + 1)
 size = 64
 padding = 1
-shape = 'rectangle'
+shape = 'circle'
 
-tag = 'rect'
+tag = 'big_set_two'
 
 # Generate num two-color stimuli with numerosities 
 #   between low and high
@@ -111,6 +112,7 @@ images = np.empty((num, size, size, 3))
 labels = np.empty(num, dtype='int')
 
 for numerosity in range(low, high + 1):
+    print(str(numerosity) + " of " + str(high))
     for n in range(imagesPerNumerosity):
         if shape == 'circle': 
             maxDotArea = (size - (2 * padding))**2 /  (8 * numerosity)
@@ -118,20 +120,30 @@ for numerosity in range(low, high + 1):
             maxDotRad = math.sqrt(maxDotArea / math.pi)
             minDotRad = math.sqrt(minDotArea / math.pi)
             dots = generateCircles(numerosity, minDotRad, maxDotRad, padding, size)
-                    # Draw image with psychopy
-            win = visual.Window(size=(size / 2, size / 2), units='pix', fullscr=False, screen=0, monitor='testMonitor', color='#ffffff', colorSpace='rgb')
+            # Draw image with psychopy
+            win = visual.Window(size=(size / 2, size / 2), units='pix', 
+                                fullscr=False, screen=0, monitor='testMonitor', 
+                                color='#ffffff', colorSpace='rgb')
             win.flip()
             for dot in dots:
-                circle = visual.Circle(win, units='pix', radius=dot[0], pos=dot[1], fillColor='#000000', lineWidth=0.0)
+                circle = visual.Circle(win, units='pix', radius=dot[0], 
+                                       pos=dot[1], fillColor='#000000', 
+                                       lineWidth=0.0)
                 circle.draw()
         if shape == 'rectangle':
             maxSide = size / numerosity
             minSide = 3
-            rectangles = generateRectangles(numerosity, minSide, maxSide, padding, size)
-            win = visual.Window(size=(size / 2, size / 2), units='pix', fullscr=False, screen=0, monitor='testMonitor', color='#ffffff', colorSpace='rgb')
+            rectangles = generateRectangles(numerosity, minSide, maxSide, 
+                                            padding, size)
+            win = visual.Window(size=(size / 2, size / 2), units='pix', 
+                                      fullscr=False, screen=0, 
+                                      monitor='testMonitor', color='#ffffff', 
+                                      colorSpace='rgb')
             win.flip()
             for rect in rectangles:
-                rectangle = visual.Rect(win, units='pix', width=rect[0], height=rect[0], pos=rect[1], fillColor='#000000', lineWidth=0.0)
+                rectangle = visual.Rect(win, units='pix', width=rect[0], 
+                                        height=rect[0], pos=rect[1], 
+                                        fillColor='#000000', lineWidth=0.0)
                 rectangle.draw()
         win.flip()
         win.getMovieFrame(buffer='front')
