@@ -27,6 +27,10 @@ def generateCircles(numerosity, minRad, maxRad, padding, size):
         counter = 0
         while len(dots) < numerosity: 
             counter += 1
+            # For some reason, PsychoPy seems to duplicate image size, so that 
+                # with size = (64, 64), we get a 128 x 128 image. To resolve this, 
+                # the x and y coordinates can only range between -size / 4 and 
+                # size / 4, rather than -size / 2 and size / 2 as we'd expect.
             dotAttempt = np.random.uniform(minDotRad, maxDotRad)
             posBound = (size / 4) - (dotAttempt + padding)
             posAttempt = np.random.uniform(-posBound, posBound), np.random.uniform(-posBound, posBound)
@@ -71,9 +75,12 @@ def generateRectangles(numerosity, minSide, maxSide, padding, size):
         while len(shapes) < numerosity: 
             counter += 1
             shapeAttempt = np.random.uniform(minSide, maxSide)
+            # For some reason, PsychoPy seems to duplicate image size, so that 
+                # with size = (64, 64), we get a 128 x 128 image. To resolve this, 
+                # the x and y coordinates can only range between -size / 4 and 
+                # size / 4, rather than -size / 2 and size / 2 as we'd expect.
             posBound = (size / 4) - (shapeAttempt + padding)
-            posAttempt = np.random.uniform(-posBound, posBound), 
-                         np.random.uniform(-posBound, posBound)
+            posAttempt = np.random.uniform(-posBound, posBound), np.random.uniform(-posBound, posBound)
             # Check whether this dot fits the others
             goodShape = False
             if len(shapes) == 0:
@@ -121,6 +128,9 @@ for numerosity in range(low, high + 1):
             minDotRad = math.sqrt(minDotArea / math.pi)
             dots = generateCircles(numerosity, minDotRad, maxDotRad, padding, size)
             # Draw image with psychopy
+            #  For some reason, the 'size' argument specifies the length of 
+                # half of each coordinate axis, so that size / 2 is required to 
+                # obtain a side length totaling size. 
             win = visual.Window(size=(size / 2, size / 2), units='pix', 
                                 fullscr=False, screen=0, monitor='testMonitor', 
                                 color='#ffffff', colorSpace='rgb')
@@ -135,7 +145,7 @@ for numerosity in range(low, high + 1):
             minSide = 3
             rectangles = generateRectangles(numerosity, minSide, maxSide, 
                                             padding, size)
-            win = visual.Window(size=(size / 2, size / 2), units='pix', 
+            win = visual.Window(size=(size, size), units='pix', 
                                       fullscr=False, screen=0, 
                                       monitor='testMonitor', color='#ffffff', 
                                       colorSpace='rgb')
