@@ -50,7 +50,7 @@ def makeAndTrainAreaModel(dataset, ae_training_epochs,
     encoded = MaxPooling2D((2, 2), padding='same', trainable=False)(x_9)
     flatten = Flatten()(encoded)
     proto_outputs = Dense(num_reference_areas, activation='softmax', use_bias=True)(flatten)
-    outputs = ToIntegerOutput(proto_outputs)
+    outputs = ToIntegerOutput()(proto_outputs)
 
     encoder = Model(input=inputs, output=outputs)
     encoder.compile('adam', loss='binary_crossentropy')
