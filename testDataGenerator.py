@@ -64,7 +64,7 @@ def generateTests(size, padding, instances, ratios, tag, type='all'):
               'TrialNumber', 'InstanceID', 'AARatio', 'MARatio', 'lowerAA',
               'higherAA', 'lowerMA', 'higherMA', 'comparisonNumerosity', 
               'FileOne', 'FileTwo')
-    with open(infoFile, 'wb') as file:
+    with open(infoFile, 'w') as file:
         file.write(headers)
         file.close()
     images = np.empty((len(trials) * 2, size, size, 3))
@@ -252,8 +252,6 @@ def generateTests(size, padding, instances, ratios, tag, type='all'):
     win.close()
     core.quit()
 
-    # NOT WORKING
-    # Pickle image data
     imageDict = {'images': images}
     print(imageDict.shape)
     filename = 'test_data_' + tag + '.txt'

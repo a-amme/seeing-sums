@@ -1,22 +1,27 @@
 import numpy as np 
 import tensorflow as tf 
 import keras
-from keras.models import Model 
+from keras.models import Model, load_model
 from keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Reshape
 from keras.layers import UpSampling2D, BatchNormalization
 import pickle as pkl
 from autoencoder import makeAndTrainModel
-from customLayer import ToIntegerOutput
 
 def makeAndTrainAreaModel(dataset, ae_training_epochs,
-                          classifier_training_epochs, num_reference_areas=20):
+                          classifier_training_epochs, fileNameTag=None, 
+                          num_reference_areas=20):
     
     """
     All in the name.
     PARAMETERS:
         dataset: str; filename of dataset
-        num_referencce_areas: int, number of nodes in classifier to be appended 
-            to AE, each of which corresponds to one 'reference' area value
+        ae_training_epochs: int, number of epochs to train AE for
+        classifier_training_epochs: int, number of epochs to train classifier for
+        fileNameTag: str, name to base model and key filenames off of; if one 
+            is provided, model will be saved 
+        num_reference_areas: int, number of nodes in the classifier which will 
+            be added to the autoencoder. Each node will correspond to one 
+            'reference' area value
     """
 
     # Load data
@@ -49,16 +54,15 @@ def makeAndTrainAreaModel(dataset, ae_training_epochs,
     x_9 = Conv2D(32, (3, 3), activation='relu', padding='same', trainable=False)(x_8)
     encoded = MaxPooling2D((2, 2), padding='same', trainable=False)(x_9)
     flatten = Flatten()(encoded)
-    proto_outputs = Dense(num_reference_areas, activation='softmax', use_bias=True)(flatten)
-    outputs = ToIntegerOutput()(proto_outputs)
+    outputs = Dense(num_reference_areas, activation='softmax', use_bias=True)(flatten)
 
-    encoder = Model(input=inputs, output=outputs)
-    encoder.compile('adam', loss='binary_crossentropy')
+    classifier = Model(input=inputs, output=outputs)
+    classifier.compile('adam', loss='binary_crossentropy')
 
-    encoder_weights = ae.get_weights()[:10] + encoder.get_weights()[-2:]
-    encoder.set_weights(encoder_weights)
+    classifier_weights = ae.get_weights()[:10] + classifier.get_weights()[-2:]
+    classifier.set_weights(classifier_weights)
 
-    encoder.summary()
+    classifier.summary()
 
     # Train classifier
     # Prepare label vectors
@@ -89,6 +93,13 @@ def makeAndTrainAreaModel(dataset, ae_training_epochs,
     y = y.astype(int)
 
     # Train classifier
-    encoder.fit(data, y, epochs=classifier_training_epochs, verbose=1)
+    classifier.fit(data, y, epochs=classifier_training_epochs, verbose=1)
 
-    return({'key': reference_areas, 'model': encoder})
+    if fileNameTag is not None:
+        modelFile = fileNameTag + '_model.h5'
+        classifier.save(modelFile)
+        keyFile = fileNameTag + '_key.txt'
+        with open(keyFile, 'wb') as file:
+            pkl.dump(file)
+    
+    return({'key': reference_areas, 'model': classifier})

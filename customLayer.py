@@ -11,9 +11,11 @@ class ToIntegerOutput(Layer):
         super(ToIntegerOutput, self).__init__(**kwargs)
 
     def build(self, input_shape):
+        self.built = True
         super(ToIntegerOutput, self).build(input_shape)
 
     def call(self, x):
         # Make an element of the vector one if it is greater than the mean 
             # element value
-        return(K.cast_to_floatx(x > K.mean(x)))
+        mean = K.sum(x) / K.cast_to_floatx(K.shape(x)[0])
+        return(K.cast_to_floatx(x > mean))
