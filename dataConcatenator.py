@@ -14,20 +14,20 @@ def concatenate(outputFile, dataFiles, cleanup=False):
     with open(dataFiles[0], 'rb') as file:
         data = pkl.load(file)
         x = data['x']
-        y = data['y']
+        aa = data['aa']
 
     for filename in dataFiles[1:]:
         with open(filename, 'rb') as file:
             add_data = pkl.load(file)
             add_x = add_data['x']
-            add_y = add_data['y']
+            add_aa = add_data['aa']
             assert x[0].shape == add_x[0].shape, "Images must be same size"
             x = np.concatenate((x, add_x))
-            y = np.concatenate((y, add_y))
+            aa = np.concatenate((aa, add_aa))
 
     dataDict = {
         'x': x,
-        'y': y
+        'aa': aa
     }
 
     with open(outputFile, 'wb') as file:

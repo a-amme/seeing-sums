@@ -74,13 +74,14 @@ def generateRectangles(numerosity, minSide, maxSide, padding, size):
         counter = 0
         while len(shapes) < numerosity: 
             counter += 1
-            shapeAttempt = np.random.uniform(minSide, maxSide)
+            shapeAttempt = (math.floor(np.random.uniform(minSide, maxSide)), math.floor(np.random.uniform(minSide, maxSide)))
             # For some reason, PsychoPy seems to duplicate image size, so that 
                 # with size = (64, 64), we get a 128 x 128 image. To resolve this, 
                 # the x and y coordinates can only range between -size / 4 and 
                 # size / 4, rather than -size / 2 and size / 2 as we'd expect.
-            posBound = (size / 4) - (shapeAttempt + padding)
-            posAttempt = np.random.uniform(-posBound, posBound), np.random.uniform(-posBound, posBound)
+            posBoundX = (size / 4) - (shapeAttempt[0] / 2 + padding)
+            posBoundY = (size / 4) - (shapeAttempt[1] / 2 + padding)
+            posAttempt = np.random.uniform(-posBoundX, posBoundX), np.random.uniform(-posBoundY, posBoundY)
             # Check whether this dot fits the others
             goodShape = False
             if len(shapes) == 0:
@@ -90,8 +91,8 @@ def generateRectangles(numerosity, minSide, maxSide, padding, size):
                 for shape in shapes:
                     centerDistanceY = max(shape[1][1], posAttempt[1]) - min(shape[1][1], posAttempt[1])
                     centerDistanceX = max(shape[1][0], posAttempt[0]) - min(shape[1][0], posAttempt[0])
-                    minimumDistanceX = shape[0] / 2 + shapeAttempt / 2 + padding
-                    minimumDistanceY = shape[0] / 2 + shapeAttempt / 2 + padding
+                    minimumDistanceX = shape[0][0] / 2 + shapeAttempt[0] / 2 + padding
+                    minimumDistanceY = shape[0][1] / 2 + shapeAttempt[1] / 2 + padding
                     if centerDistanceX < minimumDistanceX and centerDistanceY < minimumDistanceY:
                         goodShape = False
             if goodShape: 
@@ -102,25 +103,29 @@ def generateRectangles(numerosity, minSide, maxSide, padding, size):
     return shapes
 
 
-num = 1 # this is an upper bound
+num = 1300 # this is an upper bound
 low = 1
 high = 13
 imagesPerNumerosity = num / (high - low + 1)
 size = 64
 padding = 1
-shape = 'circle'
+shape = 'rectangle'
 
-tag = 'big_set_two'
+tag = 'rectangles'
 
 # Generate num two-color stimuli with numerosities 
 #   between low and high
 
 images = np.empty((num, size, size, 3))
-labels = np.empty(num, dtype='int')
+aas = np.empty(num, dtype='float')
 
 for numerosity in range(low, high + 1):
     print(str(numerosity) + " of " + str(high))
     for n in range(imagesPerNumerosity):
+        if n % math.ceil(imagesPerNumerosity / 10) == 0:
+            compl = (float(n) / imagesPerNumerosity) * 100.
+            print(str(numerosity) + ' completion: ' + str(compl))
+        aa = 0
         if shape == 'circle': 
             maxDotArea = (size - (2 * padding))**2 /  (8 * numerosity)
             minDotArea = maxDotArea / 10
@@ -136,29 +141,31 @@ for numerosity in range(low, high + 1):
                                 color='#ffffff', colorSpace='rgb')
             win.flip()
             for dot in dots:
+                aa += 2 * 4 * dot[0] # We have to multiply by 2 due to the bug
                 circle = visual.Circle(win, units='pix', radius=dot[0], 
                                        pos=dot[1], fillColor='#000000', 
                                        lineWidth=0.0)
                 circle.draw()
         if shape == 'rectangle':
-            maxSide = size / numerosity
-            minSide = 3
+            maxSide = math.floor(size / (numerosity / 2.))
+            minSide = maxSide / 5
             rectangles = generateRectangles(numerosity, minSide, maxSide, 
                                             padding, size)
-            win = visual.Window(size=(size, size), units='pix', 
+            win = visual.Window(size=(size / 2, size / 2), units='pix', 
                                       fullscr=False, screen=0, 
                                       monitor='testMonitor', color='#ffffff', 
                                       colorSpace='rgb')
             win.flip()
             for rect in rectangles:
-                rectangle = visual.Rect(win, units='pix', width=rect[0], 
-                                        height=rect[0], pos=rect[1], 
+                aa += rect[0][0] + rect[0][1]
+                rectangle = visual.Rect(win, units='pix', width=rect[0][0] / 2, 
+                                        height=rect[0][1] / 2, pos=rect[1], 
                                         fillColor='#000000', lineWidth=0.0)
                 rectangle.draw()
-        win.flip()
-        win.getMovieFrame(buffer='front')
+        win.getMovieFrame(buffer='back')
         imageName = "pngs/" + tag + "_" + str(numerosity) + "_" + str(n + 1) + ".png"
         win.saveMovieFrames(imageName)
+        win.clearBuffer()
         win.close()
         # Convert image to array
         image = Image.open( imageName  )
@@ -167,13 +174,13 @@ for numerosity in range(low, high + 1):
         # Add images to dataset array
         imageIndex = (range(low, high + 1).index(numerosity) * imagesPerNumerosity) + n
         images[imageIndex] = imageAsArray
-        labels[imageIndex] = numerosity
+        aas[imageIndex] = aa
         # Delete png (save for one of each numerosity, as a sanity check)
         if n != 0:
             os.remove(imageName)
 dataDict = {
-    "x": images,
-    "y": labels
+    'x': images,
+    'aa': aas
 }
 
 filename = tag + '_dot_displays.txt'
