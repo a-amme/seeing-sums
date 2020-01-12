@@ -18,10 +18,10 @@ aggregate.results <- test.results %>%
   group_by(Condition, Ratio) %>%
   summarize(MeanEuclideanDistance = mean(Distance))
 
-aggregate.results.numerosity <- test.results %>%
-  group_by(Condition, Ratio, comparisonNumerosity) %>%
+aggregate.results.collapsed <- test.results %>%
+  group_by(Condition) %>%
   summarize(MeanEuclideanDistance = mean(Distance))
 
 # ANOVA
-fit <- aov(MeanEuclideanDistance ~ Condition + Ratio + Condition:Ratio, data=aggregate.results)
+fit <- aov(Distance ~ Condition + Ratio + Condition:Ratio, data=test.results)
 summary(fit)
